@@ -100,5 +100,34 @@ router.get('/puzzle/:id', async (req, res) => {
 
 });
 
+// GET /puzzle/:id/solution
+
+router.get('/puzzle/:id/solution', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const puzzle = await Puzzle.findById(id);
+
+        if (!puzzle) {
+            return res.status(404).json({ message: 'Puzzle not found' });
+        }
+
+        // Deep clone the puzzle (to avoid mutating DB doc if needed)
+        const updatedPuzzle = JSON.parse(JSON.stringify(puzzle));
+
+        // Set displayedLetter to expectedLetter for each grid cell
+        if (Array.isArray(updatedPuzzle.grid)) {
+            updatedPuzzle.grid.forEach(cell => {
+                cell.displayedLetter = cell.expectedLetter || '';
+            });
+        }
+
+        res.status(200).json(updatedPuzzle);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+
 
 module.exports = router;
